@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中野酢 ウェブマーケティング現状分析・提案</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --ink: #1a1a18;
+  --ink2: #3d3d38;
+  --muted: #7a7a72;
+  --border: #deded8;
+  --bg: #fafaf7;
+  --surface: #f3f3ee;
+  --accent: #2d5016;
+  --gold: #7a5800;
+  --red: #8b1a1a;
+  --blue: #1a3a5c;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans JP', sans-serif; background: #1a1a18; overflow: hidden; }
+
+.deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  display: none; width: 100%; height: 100%;
+  background: var(--bg); position: absolute; top: 0; left: 0; overflow: hidden;
+}
+.slide.active { display: flex; flex-direction: column; }
+
+.nav {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 16px; z-index: 100;
+  background: rgba(26,26,24,0.88); border-radius: 40px;
+  padding: 10px 22px; backdrop-filter: blur(8px);
+}
+.nav button {
+  background: none; border: 1px solid rgba(255,255,255,0.3); color: #fff;
+  padding: 7px 20px; border-radius: 20px; cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 14px; transition: background 0.2s;
+}
+.nav button:hover { background: rgba(255,255,255,0.15); }
+.nav .counter { color: rgba(255,255,255,0.6); font-size: 13px; min-width: 64px; text-align: center; }
+
+/* 共通 */
+.slide-inner {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 44px 60px 72px 76px; overflow: hidden; position: relative;
+}
+.slide-inner::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent);
+}
+.slide-tag { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+.slide-title { font-family: 'Noto Serif JP', serif; font-size: 28px; font-weight: 700; color: var(--ink); line-height: 1.3; margin-bottom: 22px; }
+.slide-title span { color: var(--accent); }
+
+/* 表紙 */
+#s1 { background: var(--ink); }
+#s1 .slide-inner { justify-content: center; padding: 80px; }
+#s1 .slide-inner::before { display: none; }
+.cover-label { font-size: 12px; letter-spacing: 0.3em; color: rgba(255,255,255,0.4); margin-bottom: 20px; text-transform: uppercase; }
+.cover-title { font-family: 'Noto Serif JP', serif; font-size: 42px; font-weight: 300; color: #fff; line-height: 1.4; margin-bottom: 10px; }
+.cover-title strong { font-weight: 700; color: #c8d8a8; }
+.cover-sub { font-size: 17px; color: rgba(255,255,255,0.45); margin-bottom: 40px; }
+.cover-line { width: 60px; height: 2px; background: #c8d8a8; margin-bottom: 40px; }
+.cover-meta { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 2; }
+
+/* メトリクス */
+.metrics { display: grid; gap: 12px; margin-bottom: 18px; }
+.metrics-4 { grid-template-columns: repeat(4, 1fr); }
+.metrics-3 { grid-template-columns: repeat(3, 1fr); }
+.metrics-2 { grid-template-columns: repeat(2, 1fr); }
+.metric { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.metric-label { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+.metric-value { font-size: 26px; font-weight: 700; color: var(--ink); line-height: 1; }
+.metric-value.up { color: var(--accent); }
+.metric-value.dn { color: var(--red); }
+.metric-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* 2カラム */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; min-height: 0; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; flex: 1; min-height: 0; }
+
+/* カードボックス */
+.box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; overflow: hidden; }
+.box h3 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 11px; padding-bottom: 9px; border-bottom: 1px solid var(--border); }
+.box ul { list-style: none; }
+.box ul li { font-size: 13px; color: var(--ink2); padding: 5px 0; border-bottom: 1px solid var(--border); display: flex; gap: 7px; line-height: 1.5; }
+.box ul li:last-child { border-bottom: none; }
+.box ul li::before { content: '▶'; color: var(--accent); font-size: 9px; flex-shrink: 0; margin-top: 4px; }
+
+/* ハイライト */
+.hl { background: #f0f7e8; border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 0 6px 6px 0; margin-bottom: 14px; font-size: 13px; color: var(--ink2); line-height: 1.7; }
+.hl strong { color: var(--accent); }
+.hl-amber { background: #fefaf0; border-left-color: #b8860b; }
+.hl-red { background: #fef5f5; border-left-color: var(--red); }
+.hl-blue { background: #f0f5fa; border-left-color: var(--blue); }
+
+/* サマリーカード */
+.sum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; flex: 1; min-height: 0; }
+.s-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; overflow: hidden; }
+.s-card-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+.s-card-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.s-card-label { font-size: 13px; font-weight: 700; color: var(--ink); }
+.s-card-body { list-style: none; }
+.s-card-body li { font-size: 13px; color: var(--ink2); padding: 4px 0 4px 14px; position: relative; line-height: 1.5; border-bottom: 1px solid var(--border); }
+.s-card-body li:last-child { border-bottom: none; }
+.s-card-body li::before { content: '·'; position: absolute; left: 0; color: var(--muted); }
+
+/* 課題カード */
+.issue-card { border-radius: 8px; padding: 18px 20px; position: relative; overflow: hidden; flex: 1; }
+.issue-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.issue-card.red { background: #fef5f5; border: 1px solid #f5c6c6; }
+.issue-card.red::before { background: var(--red); }
+.issue-card.amber { background: #fefaf0; border: 1px solid #f5e6aa; }
+.issue-card.amber::before { background: #b8860b; }
+.issue-card.blue { background: #f0f5fa; border: 1px solid #b8d0e8; }
+.issue-card.blue::before { background: var(--blue); }
+.issue-card.green { background: #f0f7e8; border: 1px solid #b8d898; }
+.issue-card.green::before { background: var(--accent); }
+.issue-num { font-size: 32px; font-weight: 700; color: rgba(0,0,0,0.07); font-family: 'Noto Serif JP', serif; margin-bottom: 6px; }
+.issue-title { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+.issue-body { font-size: 12px; color: var(--ink2); line-height: 1.8; }
+
+/* フェーズ */
+.phase-list { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
+.phase-item { display: flex; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; align-items: flex-start; }
+.phase-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; border-radius: 4px; padding: 4px 10px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; text-align: center; }
+.phase-badge.p1 { background: #fef0f0; color: var(--red); border: 1px solid #f5c6c6; }
+.phase-badge.p2 { background: #fefaf0; color: #7a5800; border: 1px solid #f5e088; }
+.phase-badge.p3 { background: #f0f7f0; color: var(--accent); border: 1px solid #c0dca0; }
+.phase-badge.p4 { background: #f0f5fa; color: var(--blue); border: 1px solid #b8d0e8; }
+.phase-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.phase-detail { font-size: 12px; color: var(--ink2); line-height: 1.7; }
+
+/* KPIテーブル */
+.kpi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.kpi-table thead tr { background: #2d3d28; color: #fff; }
+.kpi-table thead th { padding: 10px 14px; text-align: left; font-weight: 500; font-size: 12px; }
+.kpi-table tbody tr { border-bottom: 1px solid var(--border); }
+.kpi-table tbody tr:nth-child(even) { background: var(--surface); }
+.kpi-table tbody td { padding: 10px 14px; color: var(--ink2); font-size: 13px; }
+.kpi-table tbody td:first-child { font-weight: 700; color: var(--ink); }
+.badge-now { background: #f0f5fa; color: var(--blue); border-radius: 4px; padding: 1px 7px; font-size: 11px; }
+.badge-target { background: #f0f7f0; color: var(--accent); border-radius: 4px; padding: 1px 7px; font-size: 11px; font-weight: 700; }
+
+/* 商品ランク */
+.rank-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.rank-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+.rank-num { font-family: 'Noto Serif JP', serif; font-size: 17px; font-weight: 700; color: var(--muted); width: 24px; text-align: center; }
+.rank-num.gold { color: #c8980a; }
+.rank-num.silver { color: #888; }
+.rank-num.bronze { color: #a0623a; }
+.rank-name { flex: 1; font-size: 12px; color: var(--ink); line-height: 1.4; }
+.rank-amount { font-size: 13px; font-weight: 700; color: var(--ink2); white-space: nowrap; }
+
+/* チャネルカード */
+.channel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex: 1; min-height: 0; }
+.ch-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow: hidden; }
+.ch-name { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 10px; display: flex; align-items: center; gap: 7px; }
+.ch-dot { width: 9px; height: 9px; border-radius: 50%; }
+.ch-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ch-m-label { font-size: 10px; color: var(--muted); margin-bottom: 1px; }
+.ch-m-val { font-size: 17px; font-weight: 700; color: var(--ink); }
+.ch-m-sub { font-size: 10px; color: var(--muted); }
+.ch-note { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--border); font-size: 11px; color: var(--ink2); line-height: 1.7; }
+
+/* タグ */
+.tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+.tag-red { background: #fef0f0; color: var(--red); border: 1px solid #f5c6c6; }
+.tag-amber { background: #fefaf0; color: #7a5800; border: 1px solid #f5e088; }
+.tag-green { background: #f0f7f0; color: var(--accent); border: 1px solid #c0dca0; }
+.tag-blue { background: #f0f5fa; color: var(--blue); border: 1px solid #b8d0e8; }
+
+/* チャートラッパー */
+.chart-wrap { position: relative; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ===== S1: 表紙 ===== -->
+<div class="slide active" id="s1">
+  <div class="slide-inner">
+    <div class="cover-label">Web Marketing Analysis Report</div>
+    <div class="cover-title"><strong>中野酢</strong><br>ウェブマーケティング<br>現状分析・提案書</div>
+    <div class="cover-sub">Web Marketing Current Analysis &amp; Strategy Proposal</div>
+    <div class="cover-line"></div>
+    <div class="cover-meta">
+      作成日：2025年5月22日<br>
+      分析対象期間：2024年1月〜2026年4月<br>
+      分析チャネル：自社EC / 公式サイト（GA4）/ LINE公式 / メルマガ
+    </div>
+  </div>
+</div>
+
+<!-- ===== S2: エグゼクティブサマリー ===== -->
+<div class="slide" id="s2">
+  <div class="slide-inner">
+    <div class="slide-tag">Executive Summary</div>
+    <div class="slide-title">現状と<span>伸びしろ</span>のサマリー</div>
+    <div class="sum-grid">
+      <div class="s-card">
+        <div class="s-card-head"><div class="s-card-num" style="background:var(--accent)">強</div><div class="s-card-label">現状の強み</div></div>
+        <ul class="s-card-body">
+          <li>自社EC月商200万円台を安定達成</li>
+          <li>メルマガ開封率54%（業界平均の約2倍）</li>
+          <li>LINE平均開封率65〜81%（業界平均超え）</li>
+          <li>LINE友だち→EC購入転換率27.6%</li>
+          <li>データ上は会員購入が大半を占める優良顧客基盤（ゲスト購入機能あり）</li>
+          <li>黒酢3本セットが3年連続売上1位の安定ブランド</li>
+        </ul>
+      </div>
+      <div class="s-card">
+        <div class="s-card-head"><div class="s-card-num" style="background:var(--red)">課</div><div class="s-card-label">構造的な課題</div></div>
+        <ul class="s-card-body">
+          <li>UTM未設定：チャネル別売上貢献が計測できていない</li>
+          <li>GA4×EC未連携：サイト→購買の導線が不可視</li>
+          <li>公式サイトの目的・対象が不明確（BtoC/BtoB/問い合わせ混在）</li>
+          <li>催事で集めた顧客データ5,000人超がデジタル未活用</li>
+          <li>YouTube公式チャンネルが2つ存在しブランドリスク</li>
+          <li>来店確認・フォロー施策が未整備</li>
+        </ul>
+      </div>
+      <div class="s-card">
+        <div class="s-card-head"><div class="s-card-num" style="background:#b8860b)">機</div><div class="s-card-label">最大の機会</div></div>
+        <ul class="s-card-body">
+          <li>計測体制を整えるだけで施策効果が初めて可視化される</li>
+          <li>54%開封率×1,500通のリストはEC訴求が圧倒的に不足</li>
+          <li>5,000人超の眠れる催事顧客へのデジタルアプローチ</li>
+          <li>EC年間カレンダー化でギフト需要の取りこぼしをなくす</li>
+          <li>公式サイトをBtoB問い合わせ・信頼醸成の拠点に整備</li>
+        </ul>
+      </div>
+      <div class="s-card">
+        <div class="s-card-head"><div class="s-card-num" style="background:var(--blue)">目</div><div class="s-card-label">6ヶ月後の目標</div></div>
+        <ul class="s-card-body">
+          <li>自社EC月商 250万円（現状200万円台から）</li>
+          <li>客単価 15,000円維持・向上</li>
+          <li>LINE開封率 70%以上を維持</li>
+          <li>メルマガEC直結配信 月1本の定常化</li>
+          <li>公式サイトのBtoB問い合わせ動線の整備完了</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S3: EC売上分析 ===== -->
+<div class="slide" id="s3">
+  <div class="slide-inner">
+    <div class="slide-tag">EC Sales Analysis</div>
+    <div class="slide-title">自社EC 売上分析 <span>2024〜2026年</span></div>
+    <div class="metrics metrics-4" style="margin-bottom:14px;">
+      <div class="metric"><div class="metric-label">2024年 月平均（通常月）</div><div class="metric-value">117<span style="font-size:15px">万円</span></div><div class="metric-sub">12月除く11ヶ月</div></div>
+      <div class="metric"><div class="metric-label">2025年 月平均</div><div class="metric-value up">203<span style="font-size:15px">万円</span></div><div class="metric-sub">前年比 +88%</div></div>
+      <div class="metric"><div class="metric-label">2026年 前年同期比（1〜4月）</div><div class="metric-value dn">−17<span style="font-size:15px">%</span></div><div class="metric-sub">2025年高ベースとの比較</div></div>
+      <div class="metric"><div class="metric-label">客単価トレンド</div><div class="metric-value up">↑</div><div class="metric-sub">12,500円→15,100円（+21%）</div></div>
+    </div>
+    <div class="hl" style="margin-bottom:12px;"><strong>重要：</strong>2026年−17%は悪化ではなく2025年特需ベースとの比較による反動。件数減・単価増の構造変化は優良顧客化が進んでいるサイン。</div>
+    <div class="chart-wrap" style="flex:1;min-height:0;">
+      <canvas id="ecChart" role="img" aria-label="2024〜2026年月次売上推移"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S4: 商品構造 ===== -->
+<div class="slide" id="s4">
+  <div class="slide-inner">
+    <div class="slide-tag">Product Structure</div>
+    <div class="slide-title">売上を支える<span>商品構造</span></div>
+    <div class="two-col">
+      <div>
+        <div class="box" style="margin-bottom:12px;">
+          <h3>2025年 商品別売上トップ7</h3>
+          <ul class="rank-list">
+            <li class="rank-item"><span class="rank-num gold">1</span><span class="rank-name">黒酢900ml 3本セット</span><span class="rank-amount">262万円</span></li>
+            <li class="rank-item"><span class="rank-num gold">2</span><span class="rank-name">デイズ貴醸〈青梅+完熟梅〉900ml</span><span class="rank-amount">206万円</span></li>
+            <li class="rank-item"><span class="rank-num silver">3</span><span class="rank-name">寿酢900ml 6本セット</span><span class="rank-amount">140万円</span></li>
+            <li class="rank-item"><span class="rank-num silver">4</span><span class="rank-name">黒酢900ml 1本</span><span class="rank-amount">121万円</span></li>
+            <li class="rank-item"><span class="rank-num silver">5</span><span class="rank-name">寿酢900ml 3本セット</span><span class="rank-amount">119万円</span></li>
+            <li class="rank-item"><span class="rank-num bronze">6</span><span class="rank-name">純米酢900ml 3本セット</span><span class="rank-amount">100万円</span></li>
+            <li class="rank-item"><span class="rank-num bronze">7</span><span class="rank-name">デイズ長醸〈熟成黒にんにく+デーツ〉</span><span class="rank-amount">89万円</span></li>
+          </ul>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <div class="box">
+          <h3>3年連続で見えるパターン</h3>
+          <ul>
+            <li>黒酢3本セットが全年度で売上1位。ブランドの核心商品として確立</li>
+            <li>デイズシリーズ（貴醸・長醸・養醸）が毎年2〜3位。高単価ギフト需要が安定</li>
+            <li>数量限定品（いちじく酢・ゆず酢・リンゴ酢等）が安定上位に入る</li>
+            <li>3年間通じて非会員購入がゼロ → 全員が会員登録済みの優良顧客</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h3>商品戦略の示唆</h3>
+          <ul>
+            <li>黒酢・デイズへの発信集中がROI最大化の近道</li>
+            <li>数量限定品の告知タイミングがEC売上の山を作る</li>
+            <li>セット販売誘導で客単価さらに向上できる余地あり</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S5: メルマガ分析 ===== -->
+<div class="slide" id="s5">
+  <div class="slide-inner">
+    <div class="slide-tag">Email Marketing Analysis</div>
+    <div class="slide-title">メルマガ分析</div>
+    <div class="metrics metrics-3" style="margin-bottom:14px;">
+      <div class="metric"><div class="metric-label">平均開封率</div><div class="metric-value up">54<span style="font-size:15px">%</span></div><div class="metric-sub">業界平均20〜25%の約2倍</div></div>
+      <div class="metric"><div class="metric-label">配信リスト</div><div class="metric-value">1,500<span style="font-size:13px">通</span></div><div class="metric-sub">2024年以降購入者に絞り込み</div></div>
+      <div class="metric"><div class="metric-label">EC直結配信 最高CV金額</div><div class="metric-value up">66,582<span style="font-size:13px">円</span></div><div class="metric-sub">赤紫蘇ビネガー発売（1配信）</div></div>
+    </div>
+    <div class="two-col">
+      <div class="box">
+        <h3>EC直結配信 パフォーマンス</h3>
+        <div class="chart-wrap" style="height:160px;margin-top:6px;">
+          <canvas id="mailChart" role="img" aria-label="メルマガ配信別パフォーマンス比較"></canvas>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <div class="hl-amber hl" style="margin-bottom:0;">
+          <strong>メルマガとLINEの関係について：</strong>ECサイト開始がLINE公式より先であることと、LINE友だちの主な獲得経路が催事・実店舗であるため、メルマガリストとLINEリストが100%重複しているわけではない。現状は両チャネルに配信している。
+        </div>
+        <div class="box">
+          <h3>課題</h3>
+          <ul>
+            <li>配信上限2,000通/月で催事告知に枠が消費される</li>
+            <li>都道府県別セグメントが複数選択不可 → 同内容を複数配信</li>
+            <li>UTM未設定のためどのメールが売上貢献か計測不能</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h3>解決策</h3>
+          <ul>
+            <li>UTM設定で計測基盤を確立（今すぐ実施可能）</li>
+            <li>催事告知のLINE比重を高めメルマガ枠をEC訴求に集中</li>
+            <li>ブラストメール移行検討（月4,000円・配信数無制限）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S6: LINE分析 ===== -->
+<div class="slide" id="s6">
+  <div class="slide-inner">
+    <div class="slide-tag">LINE Official Account Analysis</div>
+    <div class="slide-title">LINE公式 分析</div>
+    <div class="metrics metrics-4" style="margin-bottom:14px;">
+      <div class="metric"><div class="metric-label">友だち数（実質）</div><div class="metric-value">1,326<span style="font-size:12px">人</span></div><div class="metric-sub">ブロック除き</div></div>
+      <div class="metric"><div class="metric-label">平均開封率</div><div class="metric-value up">65〜81<span style="font-size:13px">%</span></div><div class="metric-sub">業界平均40%超え</div></div>
+      <div class="metric"><div class="metric-label">購入転換率（クーポン）</div><div class="metric-value up">27.6<span style="font-size:13px">%</span></div><div class="metric-sub">203人追加→56人購入</div></div>
+      <div class="metric"><div class="metric-label">配信余裕</div><div class="metric-value">3,700<span style="font-size:12px">通</span></div><div class="metric-sub">上限5,000に対し現在1,300</div></div>
+    </div>
+    <div class="channel-grid">
+      <div class="ch-card">
+        <div class="ch-name"><div class="ch-dot" style="background:#06C755"></div>EC直結配信（全体1,000〜1,300通）</div>
+        <div class="ch-metrics">
+          <div><div class="ch-m-label">平均開封率</div><div class="ch-m-val" style="color:var(--accent)">70%</div></div>
+          <div><div class="ch-m-label">平均クリック率</div><div class="ch-m-val" style="color:var(--accent)">19%</div></div>
+          <div><div class="ch-m-label">最高クリック率</div><div class="ch-m-val">28.9%</div><div class="ch-m-sub">札幌イベント告知</div></div>
+          <div><div class="ch-m-label">節分ポイントアップ</div><div class="ch-m-val">27.6%</div></div>
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-name"><div class="ch-dot" style="background:#aaa"></div>催事告知（セグメント 50〜500通）</div>
+        <div class="ch-metrics">
+          <div><div class="ch-m-label">平均開封率</div><div class="ch-m-val" style="color:var(--accent)">61%</div></div>
+          <div><div class="ch-m-label">最高開封率</div><div class="ch-m-val">81.8%</div><div class="ch-m-sub">札幌健康トーク</div></div>
+          <div><div class="ch-m-label">クリック率</div><div class="ch-m-val">〜25%</div><div class="ch-m-sub">三越催事配信</div></div>
+          <div><div class="ch-m-label">配信余裕</div><div class="ch-m-val">あり</div></div>
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-name"><div class="ch-dot" style="background:#b8860b"></div>高クリック配信の共通点</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.9;margin-top:4px;">
+          ① 季節感・行事との連動（節分・母の日等）<br>
+          ② 具体的な特典・限定感（ポイントアップ・数量限定）<br>
+          ③ リッチなビジュアル（商品画像・イベント写真）<br>
+          ④ 再送配信でも高クリック率を維持
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-name"><div class="ch-dot" style="background:var(--red)"></div>課題と今後の検討点</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.9;margin-top:4px;">
+          ① UTMパラメータ未設定 → GA4でLINE流入を識別できていない<br>
+          ② LINEと他システムの名前照合問題（重複・名寄せの要検討）<br>
+          ③ 来店確認施策の未整備（来店キャンペーン等の検討余地あり）<br>
+          ④ 催事でのLINE登録促進の仕組みの標準化
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S7: GA4分析（2ページに分割） ===== -->
+<div class="slide" id="s7a">
+  <div class="slide-inner">
+    <div class="slide-tag">GA4 / Official Website Analysis — 1/2</div>
+    <div class="slide-title">GA4 公式サイト分析 <span>流入チャネル</span></div>
+    <div class="metrics metrics-4" style="margin-bottom:14px;">
+      <div class="metric"><div class="metric-label">年間セッション数</div><div class="metric-value">22,311</div><div class="metric-sub">月平均 1,859</div></div>
+      <div class="metric"><div class="metric-label">自然検索の割合</div><div class="metric-value">75.2<span style="font-size:15px">%</span></div><div class="metric-sub">ほぼ指名検索</div></div>
+      <div class="metric"><div class="metric-label">全体エンゲージメント率</div><div class="metric-value up">54.8<span style="font-size:15px">%</span></div><div class="metric-sub">12,236セッション</div></div>
+      <div class="metric"><div class="metric-label">動画流入エンゲージ率</div><div class="metric-value up">68.3<span style="font-size:15px">%</span></div><div class="metric-sub">全チャネル最高</div></div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="chart-wrap" style="height:200px;margin-bottom:12px;">
+          <canvas id="ga4Chart" role="img" aria-label="GA4チャネル別セッション数とエンゲージメント率"></canvas>
+        </div>
+        <div class="hl" style="margin-bottom:0;font-size:12px;">
+          <strong>Organic Video = YouTube外部インフルエンサーの紹介動画。</strong>2024年12月〜2025年1月のGA4でOrganic Videoが急増しており、このYouTube紹介がEC売上急増（2025年1月237万円）の主因と推測される。自社チャンネルではなく外部インフルエンサーによる効果。
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <div class="box">
+          <h3>チャネル別 特性まとめ</h3>
+          <ul>
+            <li>自然検索（75%）：指名検索がほぼ全て。新規流入の仕組みがない</li>
+            <li>動画流入（3.7%）：エンゲージ率68%で最高品質。YouTube紹介の破壊力が数字に出ている</li>
+            <li>参照（3.8%）：雑誌・外部サイト掲載。エンゲージ率65%と質が高い</li>
+            <li>直接（14.5%）：エンゲージ率42%で最低。目的のコンテンツがない状態</li>
+            <li>未分類（0.9%）：UTM未設定のメルマガ・LINE流入が混入している</li>
+          </ul>
+        </div>
+        <div class="hl-red hl" style="margin-bottom:0;font-size:12px;">
+          <strong>計測の空白：</strong>GA4×ECキューブが未連携のため、月1,859人が公式サイトに来訪しているにもかかわらず、そのうち何人がECに遷移して購入したかが完全に不明。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S7b: GA4分析 公式サイトの役割 ===== -->
+<div class="slide" id="s7b">
+  <div class="slide-inner">
+    <div class="slide-tag">GA4 / Official Website Analysis — 2/2</div>
+    <div class="slide-title">公式サイトの<span>役割設計</span></div>
+    <div class="hl" style="margin-bottom:16px;font-size:13px;">
+      現状の公式サイトは「指名検索でたどり着いた人が確認するだけ」の状態。<strong>「誰に・何を・どんな行動をしてもらうか」が不明確なため、訪問者が何をすればいいかわからないサイトになっている。</strong>これを変えることが最優先。
+    </div>
+    <div class="three-col" style="flex:1;min-height:0;">
+      <div class="issue-card green">
+        <div class="issue-num">01</div>
+        <div class="issue-title">BtoC：ECへの購買導線</div>
+        <div class="issue-body">
+          検索意図を明確化し、訪問者をECに誘導する設計に変える。<br><br>
+          ・TOPページにEC購入ボタンを目立つ位置に配置<br>
+          ・「黒酢 飲み方」「お酢 ギフト」等のコラムで非指名流入を獲得<br>
+          ・製品詳細ページからECへのワンクリック導線<br>
+          ・遷移率の計測（GA4×EC連携）を最優先で実装
+        </div>
+      </div>
+      <div class="issue-card blue">
+        <div class="issue-num">02</div>
+        <div class="issue-title">BtoB：企業・卸・OEM問い合わせ</div>
+        <div class="issue-body">
+          百貨店食品売り場への卸・料理屋さんへの卸・OEM依頼・イベント出演・講演依頼など、企業からの問い合わせを確実に取るための導線が現状ない。<br><br>
+          ・「業務用・卸・OEM・コラボのご相談」専用ページの設置<br>
+          ・実績紹介（百貨店出展・メディア掲載）で信頼醸成<br>
+          ・問い合わせフォームへのわかりやすい動線
+        </div>
+      </div>
+      <div class="issue-card amber">
+        <div class="issue-num">03</div>
+        <div class="issue-title">ハガキ顧客・眠れるリストの活用</div>
+        <div class="issue-body">
+          催事で集めた顧客データ（5,000人超と推定）がデジタルに未移行。この層はハガキでのコミュニケーションに慣れている年齢層が多い可能性。<br><br>
+          ・ハガキにQRコード掲載 → LINE友だち登録・EC誘導<br>
+          ・「ハガキ限定クーポン」でデジタル移行を促進<br>
+          ・来店時のLINE登録促進の標準化（催事スタッフが案内）<br>
+          ・来店確認キャンペーン（来場特典等）の検討
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S8: 3つの構造的課題 ===== -->
+<div class="slide" id="s8">
+  <div class="slide-inner">
+    <div class="slide-tag">Structural Issues</div>
+    <div class="slide-title">3つの<span>構造的課題</span></div>
+    <div style="display:flex;flex-direction:column;gap:14px;flex:1;min-height:0;">
+      <div class="issue-card red" style="flex:1;">
+        <div class="issue-num">01</div>
+        <div class="issue-title">計測不能 — UTM未設定・GA4×EC未連携</div>
+        <div class="issue-body">LINE・メルマガのどのチャネルが売上に貢献しているか計測できていない。GA4とECキューブも未連携のため公式サイト→購買の導線が計測の空白。どんな施策を打っても効果が測れない状態が続いている。<br><span style="margin-top:6px;display:block;font-weight:700;color:var(--red)">→ 解決策：UTMパラメータ設定（今週中・1〜2時間）＋ GA4×EC連携設定</span></div>
+      </div>
+      <div class="issue-card amber" style="flex:1;">
+        <div class="issue-title">02 — 公式サイトの目的・対象が不明確</div>
+        <div class="issue-body">BtoC（EC購買）・BtoB（卸・OEM）・メディア・講演依頼など複数の訪問目的が混在しているのに、誰向けのどんな行動を促すサイトかが不明確。「遷移率が不明」ではなく「検索意図の明確化と導線設計が必要」という課題。<br><span style="margin-top:6px;display:block;font-weight:700;color:#7a5800">→ 解決策：ページ別に「誰に・何をしてもらうか」を定義 → コンテンツ・CTA設計</span></div>
+      </div>
+      <div class="issue-card blue" style="flex:1;">
+        <div class="issue-title">03 — 5,000人超の眠れる顧客資産</div>
+        <div class="issue-body">催事で集めた顧客データ（推定5,000人超）がデジタルチャネルに未連携。この層にはハガキが有効な年齢層も多いが、LINEやECへの橋渡しができていない。来店確認・フォロー施策も未整備。<br><span style="margin-top:6px;display:block;font-weight:700;color:var(--blue)">→ 解決策：ハガキ×QRコードによるデジタル移行 ＋ 催事来場確認キャンペーンの設計</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S9: 提案ロードマップ ===== -->
+<div class="slide" id="s9">
+  <div class="slide-inner">
+    <div class="slide-tag">Strategy Roadmap</div>
+    <div class="slide-title">提案ロードマップ <span>一人運用前提</span></div>
+    <div class="phase-list">
+      <div class="phase-item">
+        <div class="phase-badge p1">フェーズ1<br>今すぐ</div>
+        <div class="phase-content">
+          <div class="phase-title">計測基盤を整える（工数ほぼゼロ・コストゼロ）</div>
+          <div class="phase-detail">① UTMパラメータ設定（LINE・メルマガリンクに付与。初回1〜2時間で完了）　② GA4×ECキューブ連携の設定　③ YouTube公式チャンネル問題の解決（削除申請または所有権申請）　④ 公式サイトのEC購入ボタンを目立つ位置に追加（半日）</div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-badge p2">フェーズ2<br>1〜3ヶ月</div>
+        <div class="phase-content">
+          <div class="phase-title">EC売上直結の施策とリスト活用（カレンダー化・導線整備）</div>
+          <div class="phase-detail">① EC年間カレンダー設計（母の日・父の日・お中元・お歳暮・節分等）→「8週前LINE→4週前メルマガ→1週前再送」ルーティン化　② ハガキにQRコード掲載→LINE友だち登録・EC誘導（催事顧客5,000人超の活用）　③ 催事告知メールへの「オンラインでも購入できます」EC訴求の定型文追加　④ メルマガシステム移行検討（ブラストメール：初期費用なし・月4,000円・配信数無制限）</div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-badge p3">フェーズ3<br>3〜6ヶ月</div>
+        <div class="phase-content">
+          <div class="phase-title">コンテンツ資産とBtoB導線の整備</div>
+          <div class="phase-detail">① 公式サイト コラム月1本（製造秘話・農家コラボ・お酢レシピ）→ インスタ小分け展開でコンテンツ多重活用　② 公式サイトにBtoB・卸・OEM・講演問い合わせ専用ページを設置　③ 新商品LP + インスタ広告（ガッツリPRしたい商品に絞って実施）　④ Googleショッピング広告でAmazon撤退の分岐点データを取る　⑤ 来店確認キャンペーン（LINE連携の来場特典等）の試験運用</div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-badge p4">フェーズ4<br>6ヶ月〜1年</div>
+        <div class="phase-content">
+          <div class="phase-title">大きな判断（データが揃ってから）</div>
+          <div class="phase-detail">① 公式サイトリニューアル：コラム10本蓄積後が最適タイミング。BtoC/BtoB両対応のサイト設計　② Amazon撤退の判断：自社EC売上がAmazon売上を超えた時点が目安　③ 一人運用の大原則：追加工数は月10時間以内に絞る</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S10: KPIまとめ ===== -->
+<div class="slide" id="s10">
+  <div class="slide-inner">
+    <div class="slide-tag">KPI & Next Action</div>
+    <div class="slide-title">KPIと<span>今週やること</span></div>
+    <div class="hl" style="margin-bottom:16px;font-size:13px;">
+      <strong>中野酢の最大の資産：</strong>開封率54%のメルマガリスト × LINE購入転換率27.6% × 催事顧客5,000人超 × 3年連続成長の黒酢ブランド。これらを正しく計測・連携・活用するだけで追加投資なしに売上は伸びる。
+    </div>
+    <table class="kpi-table" style="margin-bottom:16px;">
+      <thead><tr><th>KPI</th><th>現状</th><th>3ヶ月目標</th><th>6ヶ月目標</th></tr></thead>
+      <tbody>
+        <tr><td>自社EC月商</td><td><span class="badge-now">200万円台</span></td><td>220万円</td><td><span class="badge-target">250万円</span></td></tr>
+        <tr><td>客単価</td><td><span class="badge-now">13,000〜15,000円</span></td><td>15,000円維持</td><td><span class="badge-target">15,000円以上</span></td></tr>
+        <tr><td>LINE平均開封率</td><td><span class="badge-now">65〜81%</span></td><td>70%以上維持</td><td><span class="badge-target">70%以上</span></td></tr>
+        <tr><td>メルマガEC直結配信</td><td><span class="badge-now">年数回</span></td><td>月1本開始</td><td><span class="badge-target">月1本継続</span></td></tr>
+        <tr><td>UTM計測カバー率</td><td><span class="badge-now">0%</span></td><td>LINE+メルマガ完了</td><td><span class="badge-target">全チャネル完了</span></td></tr>
+        <tr><td>公式サイトBtoB問い合わせ</td><td><span class="badge-now">専用ページなし</span></td><td>ページ設置</td><td><span class="badge-target">月1件以上</span></td></tr>
+      </tbody>
+    </table>
+    <div class="box">
+      <h3>今週中にやること（3つだけ）</h3>
+      <ul>
+        <li>UTMパラメータの設定（LINE・メルマガ次回配信から適用）</li>
+        <li>公式サイトのEC購入ボタンを目立つ位置に追加（半日で完了）</li>
+        <li>YouTube公式チャンネル問題の着手（Google窓口への連絡）</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div><!-- end deck -->
+
+<div class="nav">
+  <button onclick="prev()">← 前へ</button>
+  <div class="counter" id="counter">1 / 11</div>
+  <button onclick="next()">次へ →</button>
+</div>
+
+<script>
+let cur = 0;
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+
+function go(n) {
+  slides[cur].classList.remove('active');
+  cur = (n + total) % total;
+  slides[cur].classList.add('active');
+  document.getElementById('counter').textContent = (cur + 1) + ' / ' + total;
+}
+function next() { go(cur + 1); }
+function prev() { go(cur - 1); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prev();
+});
+
+window.addEventListener('load', () => {
+  // EC売上グラフ
+  const ecCtx = document.getElementById('ecChart');
+  if (ecCtx) {
+    new Chart(ecCtx, {
+      type: 'bar',
+      data: {
+        labels: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+        datasets: [
+          { label:'2024年', data:[817578,905432,959970,1001086,983603,1237630,1472119,953083,1129253,970156,989660,9089273], backgroundColor:'#d3d1c7', borderWidth:0 },
+          { label:'2025年', data:[2372566,1944948,1707824,1608521,1843462,2927202,1773782,2195695,2031269,2175941,1429656,2225485], backgroundColor:'#2d5016', borderWidth:0 },
+          { label:'2026年', data:[1535012,1570857,1857373,2110765,null,null,null,null,null,null,null,null], backgroundColor:'#8b4513', borderWidth:0 },
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ labels:{ font:{size:12}, color:'#3d3d38' } }, tooltip:{ callbacks:{ label: c => c.dataset.label+': '+(c.parsed.y||0).toLocaleString()+'円' } } },
+        scales:{ x:{ticks:{font:{size:11},color:'#7a7a72',autoSkip:false}}, y:{ticks:{callback:v=>Math.round(v/10000)+'万',font:{size:11},color:'#7a7a72'},grid:{color:'rgba(0,0,0,0.06)'}} }
+      }
+    });
+  }
+
+  // メルマガChart
+  const mCtx = document.getElementById('mailChart');
+  if (mCtx) {
+    new Chart(mCtx, {
+      type:'bar',
+      data:{
+        labels:['赤紫蘇ビネガー','Vinebon母の日','東京催事','浜松遠鉄'],
+        datasets:[
+          { label:'開封率(%)', data:[51.7,57.2,58.7,50.0], backgroundColor:'#2d5016', borderWidth:0 },
+          { label:'クリック率(%)', data:[7.1,7.5,9.4,4.8], backgroundColor:'#8b4513', borderWidth:0 },
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ labels:{font:{size:11},color:'#3d3d38'} } },
+        scales:{ x:{ticks:{font:{size:11},color:'#7a7a72',autoSkip:false}}, y:{ticks:{callback:v=>v+'%',font:{size:11},color:'#7a7a72'},grid:{color:'rgba(0,0,0,0.06)'},max:80} }
+      }
+    });
+  }
+
+  // GA4 Chart
+  const gCtx = document.getElementById('ga4Chart');
+  if (gCtx) {
+    new Chart(gCtx, {
+      type:'bar',
+      data:{
+        labels:['自然検索','直接','参照','動画(YT)','SNS'],
+        datasets:[
+          { type:'bar', label:'セッション数', data:[16786,3236,846,816,594], backgroundColor:'#2d5016', borderWidth:0, yAxisID:'y' },
+          { type:'line', label:'エンゲージメント率(%)', data:[55.87,42.15,65.37,68.26,61.28], borderColor:'#8b4513', backgroundColor:'transparent', borderWidth:2, pointBackgroundColor:'#8b4513', pointRadius:4, yAxisID:'y2' },
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ labels:{font:{size:11},color:'#3d3d38'} } },
+        scales:{
+          x:{ticks:{font:{size:11},color:'#7a7a72',autoSkip:false}},
+          y:{position:'left',ticks:{callback:v=>v.toLocaleString(),font:{size:11},color:'#7a7a72'},grid:{color:'rgba(0,0,0,0.06)'}},
+          y2:{position:'right',min:0,max:100,ticks:{callback:v=>v+'%',font:{size:11},color:'#7a7a72'},grid:{display:false}}
+        }
+      }
+    });
+  }
+});
+</script>
+</body>
+</html>
