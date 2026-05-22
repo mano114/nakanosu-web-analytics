@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中野酢 カスタマージャーニーマップ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1a1a18;--ink2:#3d3d38;--muted:#7a7a72;
+  --border:#deded8;--bg:#fafaf7;--surface:#f3f3ee;
+  --a:#2d5016;--a-l:#e8f3dc;--a-m:#b8d898;
+  --b:#7a4800;--b-l:#fdf0e0;--b-m:#f5c878;
+  --c:#1a3a5c;--c-l:#e0ecf8;--c-m:#90b8d8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);}
+.page-header{background:var(--ink);color:#fff;padding:24px 40px 20px;border-bottom:4px solid #c8d8a8;}
+.page-title{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{font-size:12px;color:rgba(255,255,255,0.45);}
+.tabs{display:flex;border-bottom:2px solid var(--border);background:var(--surface);padding:0 40px;}
+.tab{padding:13px 22px;font-size:14px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;color:var(--muted);transition:all .2s;}
+.tab:hover{color:var(--ink);}
+.tab.on-a{color:var(--a);border-bottom-color:var(--a);}
+.tab.on-b{color:var(--b);border-bottom-color:var(--b);}
+.tab.on-c{color:var(--c);border-bottom-color:var(--c);}
+.journey{display:none;padding:28px 40px 60px;overflow-x:auto;}
+.journey.active{display:block;}
+
+/* ペルソナ */
+.persona{display:flex;align-items:flex-start;gap:20px;padding:18px 22px;border-radius:10px;margin-bottom:24px;}
+.persona-icon{font-size:36px;flex-shrink:0;margin-top:2px;}
+.persona-name{font-size:16px;font-weight:700;margin-bottom:4px;}
+.persona-desc{font-size:13px;color:var(--ink2);line-height:1.7;}
+.ptags{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;}
+.ptag{font-size:11px;padding:2px 10px;border-radius:12px;}
+
+/* グリッド */
+.grid{display:grid;min-width:900px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.g5{grid-template-columns:110px repeat(5,1fr);}
+.g4{grid-template-columns:110px repeat(4,1fr);}
+.row-label{background:var(--ink);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:10px 8px;text-align:center;letter-spacing:.06em;writing-mode:horizontal-tb;border-bottom:1px solid rgba(255,255,255,.1);}
+.ph-head{padding:14px 16px;font-size:13px;font-weight:700;text-align:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.cell{padding:12px 14px;font-size:12px;color:var(--ink2);border-right:1px solid var(--border);border-bottom:1px solid var(--border);line-height:1.7;vertical-align:top;}
+.cell:last-child{border-right:none;}
+.row-label:last-of-type{border-bottom:none;}
+.last-row .cell{border-bottom:none;}
+.last-row .row-label{border-bottom:none;}
+
+/* 感情バー */
+.em{display:flex;align-items:center;gap:6px;padding:8px 14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.em-bar{flex:1;height:6px;border-radius:3px;background:var(--border);}
+.em-fill{height:100%;border-radius:3px;}
+.em-label{font-size:11px;color:var(--muted);white-space:nowrap;}
+.em.last-row{border-bottom:none;}
+
+/* タッチポイントタグ */
+.tp{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;margin:2px 2px 2px 0;background:var(--surface);border:1px solid var(--border);color:var(--ink2);}
+
+/* 課題・施策 */
+.issue{font-size:12px;color:#8b1a1a;background:#fef5f5;border-left:3px solid #e24b4a;padding:6px 10px;border-radius:0 4px 4px 0;margin-top:6px;line-height:1.6;}
+.action{font-size:12px;color:#2d5016;background:#f0f7e8;border-left:3px solid #2d5016;padding:6px 10px;border-radius:0 4px 4px 0;margin-top:6px;line-height:1.6;}
+.hypothesis{font-size:11px;color:#7a4800;background:#fefaf0;border-left:3px solid #b8860b;padding:5px 9px;border-radius:0 4px 4px 0;margin-top:6px;line-height:1.6;}
+
+ul.tl{list-style:none;padding:0;}
+ul.tl li{padding:3px 0 3px 12px;position:relative;}
+ul.tl li::before{content:'·';position:absolute;left:0;color:var(--muted);}
+
+.section-title{font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;margin:32px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--border);}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">中野酢 — カスタマージャーニーマップ</div>
+  <div class="page-sub">作成日：2025年5月22日　／　3タイプの顧客体験を分析・可視化</div>
+</div>
+
+<div class="tabs">
+  <div class="tab on-a" onclick="show('a')">タイプA：デジタル起点のEC購入者</div>
+  <div class="tab" onclick="show('b')">タイプB：催事起点の顧客</div>
+  <div class="tab" onclick="show('c')">タイプC：BtoB（卸・OEM・講演）</div>
+</div>
+
+<!-- ===== TYPE A ===== -->
+<div class="journey active" id="j-a">
+  <div class="persona" style="background:var(--a-l);border:1px solid var(--a-m);">
+    <div class="persona-icon">👩‍💻</div>
+    <div>
+      <div class="persona-name" style="color:var(--a)">タイプA：デジタル起点のEC購入者</div>
+      <div class="persona-desc">YouTubeのインフルエンサー紹介動画・雑誌掲載・知人の口コミをきっかけに「中野酢」を知り、自ら検索してECで購入するタイプ。健康意識が高め。ギフト需要もあり。SNSや検索で自発的に発見するケースは少なく、「誰かが紹介する」ことが認知のほぼ全て。</div>
+      <div class="ptags">
+        <span class="ptag" style="background:var(--a-l);border:1px solid var(--a-m);color:var(--a)">健康意識高め</span>
+        <span class="ptag" style="background:var(--a-l);border:1px solid var(--a-m);color:var(--a)">30〜50代</span>
+        <span class="ptag" style="background:var(--a-l);border:1px solid var(--a-m);color:var(--a)">ギフト需要あり</span>
+        <span class="ptag" style="background:var(--a-l);border:1px solid var(--a-m);color:var(--a)">現状は少数だが育てたいルート</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">ジャーニーマップ</div>
+  <div class="grid g5">
+    <!-- フェーズヘッダー -->
+    <div class="row-label" style="background:var(--a);">フェーズ</div>
+    <div class="ph-head" style="background:var(--a-l);color:var(--a);">① 認知</div>
+    <div class="ph-head" style="background:var(--a-l);color:var(--a);">② 興味・検討</div>
+    <div class="ph-head" style="background:var(--a-l);color:var(--a);">③ 初回購入</div>
+    <div class="ph-head" style="background:var(--a-l);color:var(--a);">④ フォロー・関係構築</div>
+    <div class="ph-head" style="background:var(--a-l);color:var(--a);border-right:none;">⑤ リピート・ファン化</div>
+
+    <!-- 行動 -->
+    <div class="row-label" style="background:#3d3d38;">行動</div>
+    <div class="cell">
+      <ul class="tl">
+        <li>YouTubeでインフルエンサーが中野酢を紹介しているのを視聴</li>
+        <li>雑誌・メディアで掲載記事を目にする</li>
+        <li>知人・家族から話を聞く</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <ul class="tl">
+        <li>「中野酢」で指名検索する</li>
+        <li>公式サイトを訪問・商品を確認</li>
+        <li>ECサイトで商品ページを見る</li>
+        <li>口コミ・レビューを調べる</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <ul class="tl">
+        <li>ECサイトで会員登録</li>
+        <li>黒酢3本セット・デイズシリーズ等を購入</li>
+        <li>ギフト利用の場合は送り先を設定</li>
+        <li>LINEの500円OFFクーポンを使う場合も</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <ul class="tl">
+        <li>商品到着・使い始める</li>
+        <li>メルマガ登録（購入時に自動）</li>
+        <li>LINE公式に友だち追加（500円OFFがきっかけの場合も）</li>
+        <li>メルマガ・LINEを受け取る</li>
+      </ul>
+    </div>
+    <div class="cell" style="border-right:none;">
+      <ul class="tl">
+        <li>気に入ってEC再購入</li>
+        <li>限定品・新商品をメルマガ・LINEで知って追加購入</li>
+        <li>ギフト需要（母の日・お歳暮）で定期購入化</li>
+        <li>口コミで家族・友人に紹介</li>
+      </ul>
+    </div>
+
+    <!-- タッチポイント -->
+    <div class="row-label" style="background:#3d3d38;">タッチポイント</div>
+    <div class="cell">
+      <span class="tp">YouTube</span><span class="tp">雑誌・メディア</span><span class="tp">口コミ・紹介</span>
+      <div class="hypothesis">※SNS自然発見はごく少数。指名検索以前の認知はほぼ「誰かの紹介」</div>
+    </div>
+    <div class="cell">
+      <span class="tp">Google検索</span><span class="tp">公式サイト</span><span class="tp">ECサイト</span><span class="tp">口コミサイト</span>
+    </div>
+    <div class="cell">
+      <span class="tp">ECサイト</span><span class="tp">LINE（クーポン）</span><span class="tp">メール（注文確認）</span>
+    </div>
+    <div class="cell">
+      <span class="tp">メルマガ</span><span class="tp">LINE公式</span><span class="tp">商品同梱物</span>
+    </div>
+    <div class="cell" style="border-right:none;">
+      <span class="tp">メルマガ</span><span class="tp">LINE公式</span><span class="tp">ECサイト</span><span class="tp">季節イベント</span>
+    </div>
+
+    <!-- 感情 -->
+    <div class="row-label" style="background:#3d3d38;">感情</div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:40%;background:#b8860b;"></div></div><div class="em-label">興味わいた</div></div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:60%;background:#b8860b;"></div></div><div class="em-label">気になる・調べたい</div></div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:75%;background:var(--a);"></div></div><div class="em-label">よさそう・買おう</div></div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:80%;background:var(--a);"></div></div><div class="em-label">おいしい・満足</div></div>
+    <div class="em last-row" style="border-bottom:none;"><div class="em-bar"><div class="em-fill" style="width:90%;background:var(--a);"></div></div><div class="em-label">ファン・また買いたい</div></div>
+
+    <!-- 課題・障壁 -->
+    <div class="row-label" style="background:#3d3d38;">課題・障壁</div>
+    <div class="cell">
+      <div class="issue">YouTube紹介は外部依存。自社では再現できない。インフルエンサーへの積極的PR売り込みが必要</div>
+    </div>
+    <div class="cell">
+      <div class="issue">公式サイトのお知らせページではEC誘導あり。ただしTOP等からの導線の強さは要検討</div>
+      <div class="issue">ECへの遷移率が計測できていない（GA4×EC未連携）</div>
+    </div>
+    <div class="cell">
+      
+    </div>
+    <div class="cell">
+      <div class="issue">購入後のフォローメールが自動化されていない</div>
+      <div class="issue">メルマガ・LINEがEC訴求より催事告知が多くEC購入につながりにくい</div>
+    </div>
+    <div class="cell" style="border-right:none;">
+      <div class="issue">リピート購入のきっかけがないと忘れられる</div>
+      <div class="issue">ギフト需要を拾えていない（季節前の事前告知が不足）</div>
+    </div>
+
+    <!-- 施策 -->
+    <div class="row-label last-row" style="background:var(--a);">施策・改善</div>
+    <div class="cell last-row">
+      <div class="action">YouTubeインフルエンサーへの積極的なPR・サンプル提供の仕組み化</div>
+      <div class="action">インスタ・コラムで検索流入を少しずつ作る</div>
+    </div>
+    <div class="cell last-row">
+      <div class="action">公式サイト各ページからECへの導線の強さを検討・改善（TOPへの追加は要検討）</div>
+      <div class="action">GA4×ECキューブ連携で遷移率を計測開始</div>
+    </div>
+    <div class="cell last-row">
+      <div class="action">UTMパラメータ設定でどの経路から購入したか計測</div>
+      <div class="action">LINE友だち追加→500円OFF→初回購入の流れを強化</div>
+    </div>
+    <div class="cell last-row">
+      <div class="action">購入後3日・7日・30日のフォローメール設計（ステップメール）</div>
+      <div class="action">メルマガEC直結配信を月1本定常化</div>
+    </div>
+    <div class="cell last-row" style="border-right:none;">
+      <div class="action">EC年間カレンダー（母の日・お歳暮等）の8週前告知ルーティン化</div>
+      <div class="action">限定品・新商品をLINEで先行告知</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TYPE B ===== -->
+<div class="journey" id="j-b">
+  <div class="persona" style="background:var(--b-l);border:1px solid var(--b-m);">
+    <div class="persona-icon">🏪</div>
+    <div>
+      <div class="persona-name" style="color:var(--b)">タイプB：催事起点の顧客</div>
+      <div class="persona-desc">百貨店の催事・試飲販売会で初めて中野酢に出会い、その場で購入するタイプ。毎年同じ催事会場でリピートする傾向が強く、催事と店舗購入で完結する人も多い。一部はLINE登録・EC利用に移行するが実態は不明（仮説）。ハガキでのコミュニケーションに慣れた年齢層も多い。</div>
+      <div class="ptags">
+        <span class="ptag" style="background:var(--b-l);border:1px solid var(--b-m);color:var(--b)">40〜70代が中心</span>
+        <span class="ptag" style="background:var(--b-l);border:1px solid var(--b-m);color:var(--b)">百貨店ユーザー</span>
+        <span class="ptag" style="background:var(--b-l);border:1px solid var(--b-m);color:var(--b)">ギフト需要大（送り状）</span>
+        <span class="ptag" style="background:var(--b-l);border:1px solid var(--b-m);color:var(--b)">催事リピーターが主流</span>
+        <span class="ptag" style="background:var(--b-l);border:1px solid var(--b-m);color:var(--b)">EC移行は一部（仮説）</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">ジャーニーマップ</div>
+  <div class="grid g5">
+    <div class="row-label" style="background:var(--b);">フェーズ</div>
+    <div class="ph-head" style="background:var(--b-l);color:var(--b);">① 認知・出会い</div>
+    <div class="ph-head" style="background:var(--b-l);color:var(--b);">② 体験・その場購入</div>
+    <div class="ph-head" style="background:var(--b-l);color:var(--b);">③ 催事リピート</div>
+    <div class="ph-head" style="background:var(--b-l);color:var(--b);">④ デジタル移行（仮説）</div>
+    <div class="ph-head" style="background:var(--b-l);color:var(--b);border-right:none;">⑤ EC・LINEリピート（仮説）</div>
+
+    <div class="row-label" style="background:#3d3d38;">行動</div>
+    <div class="cell">
+      <ul class="tl">
+        <li>百貨店の催事会場でブースを発見</li>
+        <li>スタッフ（社長含む）に声をかけられ試飲</li>
+        <li>知人・家族に誘われて来場</li>
+        <li>ハガキで催事のお知らせを受け取る（既存顧客）</li>
+        <li>LINE公式・メルマガで催事告知を受け取る（デジタル登録済み顧客）</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <ul class="tl">
+        <li>試飲して気に入る</li>
+        <li>その場で購入（自宅用・ギフト送り状）</li>
+        <li>社長・スタッフと直接会話・商品説明を受ける</li>
+        <li>顧客データ（住所・名前）を記録</li>
+        <li>社長によるLINE公式への友だち追加案内</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <ul class="tl">
+        <li>翌年の同じ催事会場に来場</li>
+        <li>「また来たよ」とスタッフに声をかける</li>
+        <li>ハガキで次の催事告知が来たら来場</li>
+        <li>催事→催事のサイクルで完結</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <ul class="tl">
+        <li>催事で社長・スタッフからLINE友だち追加を案内される（すでに実施中）</li>
+        <li>500円OFFクーポンでECを初めて利用</li>
+        <li>ハガキのQRコードからLINE登録（※施策案）</li>
+      </ul>
+      <div class="hypothesis">※LINE登録後にECへ移行するかは現状計測できていない。UTM設定後に実態確認が必要</div>
+    </div>
+    <div class="cell" style="border-right:none;">
+      <ul class="tl">
+        <li>催事に来られない時にECで購入</li>
+        <li>LINEで新商品・限定品を知って購入</li>
+        <li>メルマガで催事告知を受け取り来場</li>
+      </ul>
+      <div class="hypothesis">※催事常連とEC常連は大きく重複しているわけではない。催事で完結する顧客が多い</div>
+    </div>
+
+    <div class="row-label" style="background:#3d3d38;">タッチポイント</div>
+    <div class="cell">
+      <span class="tp">催事会場</span><span class="tp">スタッフの声かけ</span><span class="tp">口コミ</span><span class="tp">ハガキ（既存客）</span>
+    </div>
+    <div class="cell">
+      <span class="tp">催事ブース</span><span class="tp">試飲・対面接客</span><span class="tp">顧客台帳</span>
+    </div>
+    <div class="cell">
+      <span class="tp">催事会場（毎年）</span><span class="tp">ハガキDM</span><span class="tp">LINE（催事告知）</span><span class="tp">メルマガ（催事告知）</span>
+    </div>
+    <div class="cell">
+      <span class="tp">催事でのLINE案内</span><span class="tp">ハガキQRコード（施策案）</span><span class="tp">ECサイト</span>
+    </div>
+    <div class="cell" style="border-right:none;">
+      <span class="tp">LINE公式</span><span class="tp">メルマガ</span><span class="tp">ECサイト</span>
+    </div>
+
+    <div class="row-label" style="background:#3d3d38;">感情</div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:50%;background:var(--b);"></div></div><div class="em-label">なんだろう？試してみよう</div></div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:85%;background:var(--b);"></div></div><div class="em-label">おいしい！気に入った！</div></div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:90%;background:var(--b);"></div></div><div class="em-label">毎年ここで買うのが楽しみ</div></div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:60%;background:#b8860b;"></div></div><div class="em-label">ネットは少し不安…でも便利かも</div></div>
+    <div class="em last-row" style="border-bottom:none;"><div class="em-bar"><div class="em-fill" style="width:80%;background:var(--b);"></div></div><div class="em-label">催事にも行くしECも使う</div></div>
+
+    <div class="row-label" style="background:#3d3d38;">課題・障壁</div>
+    <div class="cell">
+      <div class="issue">催事に来てもらうための事前告知が、既存顧客（ハガキ）以外に届いていない</div>
+    </div>
+    <div class="cell">
+      <div class="issue">その場で集めた顧客データ（5,000人超）がデジタルに未連携</div>
+      <div class="issue">LINE公式はすでに活用中だが、来場確認・購入後フォローの仕組みが未整備</div>
+    </div>
+    <div class="cell">
+      <div class="issue">ハガキ送付コストと効果の把握ができていない</div>
+      <div class="issue">催事に来られなくなった顧客（高齢化・遠方）のフォローがない</div>
+    </div>
+    <div class="cell">
+      <div class="issue">LINE登録案内は実施中だが、接客できていない場面では案内漏れが発生している可能性あり</div>
+      <div class="issue">ネットに不慣れな層へのEC誘導のハードルが高い</div>
+    </div>
+    <div class="cell" style="border-right:none;">
+      <div class="issue">メルマガ・LINEがEC訴求より催事告知が多くなりがち</div>
+    </div>
+
+    <div class="row-label last-row" style="background:var(--b);">施策・改善</div>
+    <div class="cell last-row">
+      <div class="action">LINE・メルマガによる催事告知の強化（地域セグメント配信）</div>
+      <div class="action">催事会場でのSNS発信で認知拡大</div>
+    </div>
+    <div class="cell last-row">
+      <div class="action">顧客データをデジタル化（ハガキ顧客5,000人超のリスト整備）</div>
+      <div class="action">来場確認キャンペーンの試験運用（来場特典・スタンプ等）</div>
+    </div>
+    <div class="cell last-row">
+      <div class="action">ハガキにQRコード掲載→LINE登録誘導（デジタル移行の橋渡し）</div>
+      <div class="action">催事告知メールに「オンラインでも購入できます」を定型文追加</div>
+    </div>
+    <div class="cell last-row">
+      <div class="action">催事でのLINE登録促進を標準化（スタッフトークスクリプト作成）</div>
+      <div class="action">500円OFFクーポンの訴求を催事会場で強化</div>
+    </div>
+    <div class="cell last-row" style="border-right:none;">
+      <div class="action">UTM設定後に「催事顧客のEC移行率」を計測して実態把握</div>
+      <div class="action">催事に来られなくなった顧客へのEC誘導メール設計</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TYPE C ===== -->
+<div class="journey" id="j-c">
+  <div class="persona" style="background:var(--c-l);border:1px solid var(--c-m);">
+    <div class="persona-icon">🏢</div>
+    <div>
+      <div class="persona-name" style="color:var(--c)">タイプC：BtoB（卸・OEM・講演依頼）</div>
+      <div class="persona-desc">百貨店食品売り場・料理店・企業からの卸依頼、OEM製造依頼、健康イベント・講演依頼など。業界内の紹介・つながりや催事での出会いがきっかけになることが多い。公式サイトへの問い合わせ導線が現状ほぼ整備されていない。</div>
+      <div class="ptags">
+        <span class="ptag" style="background:var(--c-l);border:1px solid var(--c-m);color:var(--c)">百貨店バイヤー</span>
+        <span class="ptag" style="background:var(--c-l);border:1px solid var(--c-m);color:var(--c)">飲食店・料理家</span>
+        <span class="ptag" style="background:var(--c-l);border:1px solid var(--c-m);color:var(--c)">OEM依頼企業</span>
+        <span class="ptag" style="background:var(--c-l);border:1px solid var(--c-m);color:var(--c)">健康イベント主催者</span>
+        <span class="ptag" style="background:var(--c-l);border:1px solid var(--c-m);color:var(--c)">講演依頼者</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">ジャーニーマップ</div>
+  <div class="grid g4">
+    <div class="row-label" style="background:var(--c);">フェーズ</div>
+    <div class="ph-head" style="background:var(--c-l);color:var(--c);">① 認知・出会い</div>
+    <div class="ph-head" style="background:var(--c-l);color:var(--c);">② 調査・検討</div>
+    <div class="ph-head" style="background:var(--c-l);color:var(--c);">③ 問い合わせ・商談</div>
+    <div class="ph-head" style="background:var(--c-l);color:var(--c);border-right:none;">④ 継続・関係維持</div>
+
+    <div class="row-label" style="background:#3d3d38;">行動</div>
+    <div class="cell">
+      <ul class="tl">
+        <li>業界内の紹介・つながりで中野酢を知る</li>
+        <li>百貨店の催事・展示会でブースを見て興味を持つ</li>
+        <li>メディア・雑誌で掲載記事を見る</li>
+        <li>料理家・インフルエンサーが使っているのを知る</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <ul class="tl">
+        <li>「中野酢」で検索して公式サイトを調べる</li>
+        <li>企業情報・製品ラインナップ・実績を確認</li>
+        <li>卸条件・OEM対応可否・価格帯を調べようとするが情報がない</li>
+        <li>問い合わせ窓口を探す</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <ul class="tl">
+        <li>問い合わせフォーム・電話・メールで連絡</li>
+        <li>担当者と打ち合わせ・サンプル取り寄せ</li>
+        <li>条件交渉・契約</li>
+        <li>初回発注</li>
+      </ul>
+    </div>
+    <div class="cell" style="border-right:none;">
+      <ul class="tl">
+        <li>定期的な発注・継続取引</li>
+        <li>新商品・季節品の案内を受ける</li>
+        <li>OEMプロジェクトの継続</li>
+        <li>講演・イベントの継続依頼</li>
+      </ul>
+    </div>
+
+    <div class="row-label" style="background:#3d3d38;">タッチポイント</div>
+    <div class="cell">
+      <span class="tp">業界紹介・口コミ</span><span class="tp">催事・展示会</span><span class="tp">メディア掲載</span>
+    </div>
+    <div class="cell">
+      <span class="tp">Google検索</span><span class="tp">公式サイト</span><span class="tp">（現状：情報が不足）</span>
+    </div>
+    <div class="cell">
+      <span class="tp">問い合わせフォーム</span><span class="tp">電話・メール</span><span class="tp">対面打ち合わせ</span>
+    </div>
+    <div class="cell" style="border-right:none;">
+      <span class="tp">担当者メール</span><span class="tp">請求書・発注書</span><span class="tp">新商品案内</span>
+    </div>
+
+    <div class="row-label" style="background:#3d3d38;">感情</div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:55%;background:var(--c);"></div></div><div class="em-label">面白そう・使えるかも</div></div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:35%;background:#8b1a1a;"></div></div><div class="em-label">情報が少なくて判断しにくい</div></div>
+    <div class="em"><div class="em-bar"><div class="em-fill" style="width:75%;background:var(--c);"></div></div><div class="em-label">話が進んでよかった</div></div>
+    <div class="em last-row" style="border-bottom:none;"><div class="em-bar"><div class="em-fill" style="width:85%;background:var(--c);"></div></div><div class="em-label">信頼できるパートナー</div></div>
+
+    <div class="row-label" style="background:#3d3d38;">課題・障壁</div>
+    <div class="cell">
+      <div class="issue">催事以外での接点が少ない。PR活動が限定的</div>
+    </div>
+    <div class="cell">
+      <div class="issue">BtoB専用ページ（nakanosu.co.jp/business/）は存在するが、サイト内での認知・誘導が弱い可能性</div>
+      <div class="issue">信頼性を確認できる情報（メディア掲載実績・取引先実績）が整理されていない</div>
+      <div class="issue">問い合わせ導線が不明確で機会損失が発生している可能性</div>
+    </div>
+    <div class="cell">
+      <div class="action">社長・取締役が直接確認・対応。小規模経営の強みとして信頼感のある対応が実現できている</div>
+    </div>
+    <div class="cell" style="border-right:none;">
+      <div class="issue">新商品・季節品の案内がBtoB向けに整備されていない</div>
+    </div>
+
+    <div class="row-label last-row" style="background:var(--c);">施策・改善</div>
+    <div class="cell last-row">
+      <div class="action">催事・展示会での名刺交換の徹底とフォローアップの標準化</div>
+      <div class="action">メディア掲載時にBtoBへの認知拡大効果を最大化</div>
+    </div>
+    <div class="cell last-row">
+      <div class="action">既存のBtoB専用ページ（/business/）への動線をサイト内で強化（TOPやナビへの追加等）</div>
+      <div class="action">取引実績・メディア掲載・百貨店出展実績をページに掲載し信頼醸成</div>
+      <div class="action">問い合わせフォームへのわかりやすい動線設計</div>
+    </div>
+    <div class="cell last-row">
+      <div class="action">問い合わせ対応フローの標準化（返信テンプレート・FAQ整備）</div>
+      <div class="action">サンプル提供の仕組み化</div>
+    </div>
+    <div class="cell last-row" style="border-right:none;">
+      <div class="action">BtoB向けニュースレター（新商品・季節品案内）の設計</div>
+      <div class="action">定期的な関係維持のための情報提供の仕組み化</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(t) {
+  ['a','b','c'].forEach(x => {
+    document.getElementById('j-'+x).classList.remove('active');
+  });
+  document.getElementById('j-'+t).classList.add('active');
+  document.querySelectorAll('.tab').forEach(el => {
+    el.className = 'tab';
+  });
+  event.target.className = 'tab on-'+t;
+}
+</script>
+</body>
+</html>
