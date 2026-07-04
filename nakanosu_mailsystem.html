@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>メルマガシステム比較・提案</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1a1a18;--ink2:#3d3d38;--muted:#7a7a72;
+  --border:#deded8;--bg:#fafaf7;--surface:#f3f3ee;
+  --accent:#2d5016;--red:#8b1a1a;--blue:#1a3a5c;--gold:#7a5800;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:#1a1a18;overflow:hidden;}
+.deck{width:100vw;height:100vh;position:relative;}
+.slide{display:none;width:100%;height:100%;background:var(--bg);position:absolute;top:0;left:0;overflow:hidden;}
+.slide.active{display:flex;flex-direction:column;}
+.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:100;background:rgba(26,26,24,.88);border-radius:40px;padding:10px 22px;backdrop-filter:blur(8px);}
+.nav button{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 20px;border-radius:20px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:14px;}
+.nav button:hover{background:rgba(255,255,255,.15);}
+.counter{color:rgba(255,255,255,.6);font-size:13px;min-width:48px;text-align:center;}
+.inner{flex:1;display:flex;flex-direction:column;padding:40px 56px 68px 72px;overflow:hidden;position:relative;}
+.inner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent);}
+.tag{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.title{font-family:'Noto Serif JP',serif;font-size:26px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:20px;}
+.title span{color:var(--accent);}
+
+/* 比較テーブル */
+.cmp-table{width:100%;border-collapse:collapse;font-size:13px;flex:1;}
+.cmp-table th{padding:11px 14px;text-align:left;font-weight:700;font-size:12px;letter-spacing:.05em;}
+.cmp-table td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;color:var(--ink2);vertical-align:top;line-height:1.6;}
+.cmp-table tr:last-child td{border-bottom:none;}
+.th-label{background:#2d3d28;color:#fff;width:160px;}
+.th-post{background:#888780;color:#fff;}
+.th-blast{background:var(--accent);color:#fff;}
+.td-post{background:#f8f8f6;}
+.td-blast{background:#f0f7e8;}
+.badge-bad{display:inline-block;background:#fef5f5;color:var(--red);border:1px solid #f5c6c6;border-radius:4px;padding:1px 8px;font-size:11px;}
+.badge-good{display:inline-block;background:#f0f7e8;color:var(--accent);border:1px solid #b8d898;border-radius:4px;padding:1px 8px;font-size:11px;}
+.badge-mid{display:inline-block;background:#fefaf0;color:var(--gold);border:1px solid #f5e088;border-radius:4px;padding:1px 8px;font-size:11px;}
+
+/* メリデメ */
+.md-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.md-box{border-radius:8px;padding:16px 18px;overflow:hidden;}
+.md-box h3{font-size:13px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(0,0,0,.08);}
+.md-box ul{list-style:none;}
+.md-box ul li{font-size:12px;padding:4px 0 4px 16px;position:relative;line-height:1.6;border-bottom:1px solid rgba(0,0,0,.06);}
+.md-box ul li:last-child{border-bottom:none;}
+.md-box ul li::before{position:absolute;left:0;font-size:11px;}
+.merit{background:#f0f7e8;border:1px solid #b8d898;}
+.merit h3{color:var(--accent);}
+.merit li::before{content:'✓';color:var(--accent);}
+.demerit{background:#fef5f5;border:1px solid #f5c6c6;}
+.demerit h3{color:var(--red);}
+.demerit li::before{content:'△';color:var(--red);}
+
+/* 推奨ボックス */
+.recommend{background:var(--ink);color:#fff;border-radius:10px;padding:18px 22px;display:flex;align-items:flex-start;gap:16px;}
+.rec-icon{font-size:28px;flex-shrink:0;margin-top:2px;}
+.rec-title{font-size:14px;font-weight:700;color:#c8d8a8;margin-bottom:6px;}
+.rec-body{font-size:12px;color:rgba(255,255,255,.75);line-height:1.8;}
+
+/* コスト計算 */
+.cost-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.cost-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;text-align:center;}
+.cost-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.cost-val{font-size:20px;font-weight:700;color:var(--ink);}
+.cost-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.cost-val.good{color:var(--accent);}
+.cost-val.bad{color:var(--red);}
+.cost-diff{font-size:14px;font-weight:700;color:var(--accent);}
+
+.hl{background:#f0f7e8;border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;font-size:13px;color:var(--ink2);line-height:1.7;margin-bottom:14px;}
+.hl strong{color:var(--accent);}
+.hl-amber{background:#fefaf0;border-left-color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ===== S1: システム比較 ===== -->
+<div class="slide active" id="s1">
+  <div class="inner">
+    <div class="tag">Email System Comparison</div>
+    <div class="title">メルマガシステム比較 <span>PostCarrier vs ブラストメール</span></div>
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th class="th-label">項目</th>
+          <th class="th-post">PostCarrier for EC-CUBE<br><span style="font-weight:400;font-size:11px;">（現在使用中）</span></th>
+          <th class="th-blast">ブラストメール（blastmail）<br><span style="font-weight:400;font-size:11px;">（提案）</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-label" style="font-weight:700;color:var(--ink);background:var(--surface);">初期費用</td>
+          <td class="td-post"><span class="badge-bad">30,000円（税別）</span></td>
+          <td class="td-blast"><span class="badge-good">無料</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--ink);background:var(--surface);">月額費用</td>
+          <td class="td-post"><span class="badge-bad">無料プラン：2,000通/月まで無料<br>有料プラン：5,000円〜（税別）</span></td>
+          <td class="td-blast"><span class="badge-good">Lightプラン：4,000円〜（税別）<br>5,000件まで・配信数無制限</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--ink);background:var(--surface);">配信数上限</td>
+          <td class="td-post"><span class="badge-bad">2,000通/月（無料枠）</span><br><span style="font-size:11px;color:var(--muted);">超過は有料プランへ移行が必要</span></td>
+          <td class="td-blast"><span class="badge-good">無制限</span><br><span style="font-size:11px;color:var(--muted);">登録アドレス数に応じた月額のみ</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--ink);background:var(--surface);">セグメント配信</td>
+          <td class="td-post"><span class="badge-bad">都道府県の複数選択不可</span><br><span style="font-size:11px;color:var(--muted);">→関東配信に5回配信が必要</span></td>
+          <td class="td-blast"><span class="badge-good">柔軟なセグメント配信対応</span><br><span style="font-size:11px;color:var(--muted);">複数条件の組み合わせが可能</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--ink);background:var(--surface);">HTMLメール作成</td>
+          <td class="td-post"><span class="badge-bad">UIが使いにくい</span></td>
+          <td class="td-blast"><span class="badge-good">ドラッグ&ドロップエディタあり</span><br><span style="font-size:11px;color:var(--muted);">直感的に操作できる</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--ink);background:var(--surface);">開封率・CV計測</td>
+          <td class="td-post"><span class="badge-mid">配信ツール内で計測可</span><br><span style="font-size:11px;color:var(--muted);">GA4との連携はUTM設定が別途必要</span></td>
+          <td class="td-blast"><span class="badge-good">開封率・クリック率・コンバージョン計測</span><br><span style="font-size:11px;color:var(--muted);">GA4連携もUTM設定で対応可</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--ink);background:var(--surface);">ステップメール</td>
+          <td class="td-post"><span class="badge-mid">無料：2件まで／有料：無制限</span></td>
+          <td class="td-blast"><span class="badge-good">全プランで利用可</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--ink);background:var(--surface);">ECキューブ連携</td>
+          <td class="td-post"><span class="badge-good">プラグインで直接連携</span></td>
+          <td class="td-blast"><span class="badge-mid">CSV書き出し→インポートで対応</span><br><span style="font-size:11px;color:var(--muted);">直接連携プラグインはなし</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--ink);background:var(--surface);">無料トライアル</td>
+          <td class="td-post"><span class="badge-bad">なし</span></td>
+          <td class="td-blast"><span class="badge-good">7日間全機能無料</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--ink);background:var(--surface);">日本語UI・サポート</td>
+          <td class="td-post"><span class="badge-good">日本語対応</span></td>
+          <td class="td-blast"><span class="badge-good">日本語対応・電話サポートあり</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== S2: 提案・メリデメ ===== -->
+<div class="slide" id="s2">
+  <div class="inner">
+    <div class="tag">Proposal & Recommendation</div>
+    <div class="title">ブラストメール導入<span>提案</span></div>
+
+    <div class="cost-grid">
+      <div class="cost-card">
+        <div class="cost-label">PostCarrier 有料化コスト（初年度）</div>
+        <div class="cost-val bad">90,000円</div>
+        <div class="cost-sub">初期3万円 + 月5,000円×12ヶ月</div>
+      </div>
+      <div class="cost-card">
+        <div class="cost-label">ブラストメール Lightプラン（初年度）</div>
+        <div class="cost-val good">48,000円</div>
+        <div class="cost-sub">初期費用なし + 月4,000円×12ヶ月</div>
+      </div>
+      <div class="cost-card">
+        <div class="cost-label">初年度コスト差</div>
+        <div class="cost-val good">▲42,000円</div>
+        <div class="cost-sub">ブラストメールの方が安い</div>
+      </div>
+    </div>
+
+    <div class="md-grid">
+      <div class="md-box merit">
+        <h3>✓ ブラストメールのメリット</h3>
+        <ul>
+          <li>初期費用ゼロ・月額4,000円で配信数無制限</li>
+          <li>セグメント配信の柔軟性が高い（都道府県複数選択可）</li>
+          <li>HTMLメールをドラッグ&ドロップで作成できる</li>
+          <li>ステップメール（購入後フォロー設計）が全プランで使える</li>
+          <li>7日間の無料トライアルで事前確認できる</li>
+          <li>25,000社以上の導入実績・日本語サポート充実</li>
+          <li>将来的にリスト5,000件を超えてもStandardプランで対応可</li>
+        </ul>
+      </div>
+      <div class="md-box demerit">
+        <h3>△ ブラストメールの注意点</h3>
+        <ul>
+          <li>ECキューブとの直接連携プラグインがない<br><span style="font-size:11px;color:var(--muted);">→ 購入者リストをCSVでエクスポート→インポートする運用が必要</span></li>
+          <li>移行作業が1〜2日程度必要<br><span style="font-size:11px;color:var(--muted);">→ 既存リストをCSVで書き出してインポートするのみ</span></li>
+          <li>PostCarrierで設定済みのステップメールがあれば再設定が必要</li>
+          <li>ConversionはGA4×UTM設定との組み合わせで計測<br><span style="font-size:11px;color:var(--muted);">→ どちらにせよUTM設定は必要なため実質デメリットにならない</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recommend">
+      <div class="rec-icon">💡</div>
+      <div>
+        <div class="rec-title">推奨：ブラストメールへの移行を提案</div>
+        <div class="rec-body">
+          現状のPostCarrier無料プランは「2,000通/月・セグメント制限」という制約が最大の課題。有料化すると初年度9万円かかる上、UIの使いにくさは解決しない。<br>
+          ブラストメールは初期費用ゼロ・月額4,000円・配信数無制限・セグメント配信対応で、初年度だけで4.2万円安い。<br>
+          唯一の懸念はECキューブとの直接連携がない点だが、CSVエクスポート→インポートで対応できる（月1回の作業で完結）。<br>
+          まず7日間の無料トライアルでUI・機能を確認してから判断することを推奨する。
+        </div>
+      </div>
+    </div>
+
+    <div class="hl hl-amber" style="margin-top:12px;font-size:12px;">
+      <strong>移行のタイミング：</strong>UTMパラメータ設定と同時に進めると効率的。次回のEC直結配信（新商品・限定品）からブラストメールで配信開始できるのが理想。
+    </div>
+  </div>
+</div>
+
+</div><!-- end deck -->
+
+<div class="nav">
+  <button onclick="prev()">← 前へ</button>
+  <div class="counter" id="counter">1 / 2</div>
+  <button onclick="next()">次へ →</button>
+</div>
+
+<script>
+let cur=0;
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+function go(n){slides[cur].classList.remove('active');cur=(n+total)%total;slides[cur].classList.add('active');document.getElementById('counter').textContent=(cur+1)+' / '+total;}
+function next(){go(cur+1);}
+function prev(){go(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')next();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev();});
+</script>
+</body>
+</html>
