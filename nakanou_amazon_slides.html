@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中野酢 Amazon販売チャネル分析</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --ink:#1a1a18;--ink2:#3d3d38;--muted:#7a7a72;
+  --border:#deded8;--bg:#fafaf7;--surface:#f3f3ee;
+  --accent:#2d5016;--red:#8b1a1a;--blue:#1a3a5c;--gold:#7a5800;
+  --amz:#e47911;--amz-l:#fef3e2;--amz-m:#f5c878;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:#1a1a18;overflow:hidden;}
+.deck{width:100vw;height:100vh;position:relative;}
+.slide{display:none;width:100%;height:100%;background:var(--bg);position:absolute;top:0;left:0;overflow:hidden;}
+.slide.active{display:flex;flex-direction:column;}
+.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:100;background:rgba(26,26,24,.88);border-radius:40px;padding:10px 22px;backdrop-filter:blur(8px);}
+.nav button{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 20px;border-radius:20px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:14px;}
+.nav button:hover{background:rgba(255,255,255,.15);}
+.counter{color:rgba(255,255,255,.6);font-size:13px;min-width:64px;text-align:center;}
+.inner{flex:1;display:flex;flex-direction:column;padding:40px 56px 68px 72px;overflow:hidden;position:relative;}
+.inner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--amz);}
+.tag{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.title{font-family:'Noto Serif JP',serif;font-size:26px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:18px;}
+.title span{color:var(--amz);}
+
+.mg{display:grid;gap:12px;margin-bottom:16px;}
+.mg4{grid-template-columns:repeat(4,1fr);}
+.mg3{grid-template-columns:repeat(3,1fr);}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.ml{font-size:12px;color:var(--muted);margin-bottom:5px;}
+.mv{font-size:24px;font-weight:700;color:var(--ink);line-height:1;}
+.mv.amz{color:var(--amz);}
+.mv.up{color:var(--accent);}
+.mv.dn{color:var(--red);}
+.ms{font-size:11px;color:var(--muted);margin-top:3px;}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:1;min-height:0;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;flex:1;min-height:0;}
+.box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;overflow:hidden;}
+.box h3{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.box ul{list-style:none;}
+.box ul li{font-size:13px;color:var(--ink2);padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:7px;line-height:1.5;}
+.box ul li:last-child{border-bottom:none;}
+.box ul li::before{content:'▶';color:var(--amz);font-size:9px;flex-shrink:0;margin-top:4px;}
+
+.hl{border-left:3px solid var(--amz);background:var(--amz-l);padding:10px 14px;border-radius:0 6px 6px 0;font-size:13px;color:var(--ink2);line-height:1.7;margin-bottom:14px;}
+.hl strong{color:var(--amz);}
+.hl-red{border-left-color:var(--red);background:#fef5f5;}
+.hl-red strong{color:var(--red);}
+.hl-green{border-left-color:var(--accent);background:#f0f7e8;}
+.hl-green strong{color:var(--accent);}
+
+.chart-wrap{position:relative;min-height:0;}
+
+/* 課題・施策カード */
+.ic{background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:16px 18px;overflow:hidden;}
+.ic-tag{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.ic-val{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.4;}
+.ic-body{font-size:12px;color:var(--ink2);line-height:1.7;}
+.risk{border-left:3px solid var(--red);}
+.opp{border-left:3px solid var(--accent);}
+.warn{border-left:3px solid var(--gold);}
+
+/* 判断フローチャート風 */
+.flow{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;}
+.flow-step{display:flex;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 18px;align-items:flex-start;}
+.flow-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px;}
+.flow-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px;}
+.flow-detail{font-size:12px;color:var(--ink2);line-height:1.7;}
+.flow-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;margin-top:4px;}
+.badge-now{background:#f0f5fa;color:var(--blue);border:1px solid #b8d0e8;}
+.badge-next{background:var(--amz-l);color:#7a4800;border:1px solid var(--amz-m);}
+.badge-future{background:#f0f7f0;color:var(--accent);border:1px solid #b8d898;}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ===== S1: Amazon売上概要 ===== -->
+<div class="slide active" id="s1">
+  <div class="inner">
+    <div class="tag">Amazon Sales Channel Analysis — 1/4</div>
+    <div class="title">Amazon 売上概要 <span>2024年6月〜2026年5月</span></div>
+    <div class="mg mg4" style="margin-bottom:14px;">
+      <div class="mc"><div class="ml">期間合計売上</div><div class="mv amz">596万円</div><div class="ms">2024/6〜2026/5（24ヶ月）</div></div>
+      <div class="mc"><div class="ml">月平均売上</div><div class="mv amz">24.7万円</div><div class="ms">年間換算 約296万円</div></div>
+      <div class="mc"><div class="ml">最高月（2024年12月）</div><div class="mv">159.9万円</div><div class="ms">YouTube特需が波及</div></div>
+      <div class="mc"><div class="ml">最低月（2025年2月）</div><div class="mv dn">2.3万円</div><div class="ms">ペナルティ影響と推測</div></div>
+    </div>
+    <div class="hl" style="margin-bottom:12px;"><strong>注目：</strong>2025年2〜4月に売上が急落（2月は通常月の約1/10）。出荷遅延によるペナルティで検索順位が降下したと推測。5月以降に回復し、現在は月15〜25万円水準で安定推移。</div>
+    <div class="chart-wrap" style="flex:1;max-height:220px;">
+      <canvas id="c1" role="img" aria-label="Amazon月次売上推移グラフ"></canvas>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;">
+      <span style="display:inline-block;width:10px;height:10px;background:var(--amz);border-radius:2px;margin-right:4px;"></span>Amazon月次売上　
+      <span style="color:var(--red);">■</span> 2024年12月：YouTube特需波及（159.9万円）　
+      <span style="color:var(--red);">▼</span> 2025年2〜4月：ペナルティ影響による急落
+    </div>
+  </div>
+</div>
+
+<!-- ===== S2: 自社EC vs Amazon 比較 ===== -->
+<div class="slide" id="s2">
+  <div class="inner">
+    <div class="tag">Amazon Sales Channel Analysis — 2/4</div>
+    <div class="title">自社EC <span>vs</span> Amazon 売上比較</div>
+    <div class="mg mg3" style="margin-bottom:12px;">
+      <div class="mc"><div class="ml">2025年 自社EC月平均</div><div class="mv up">203万円</div><div class="ms">安定成長中</div></div>
+      <div class="mc"><div class="ml">2025年 Amazon月平均</div><div class="mv amz">17.8万円</div><div class="ms">自社ECの約8.8%</div></div>
+      <div class="mc"><div class="ml">2チャネル合計（2025年）</div><div class="mv">221万円</div><div class="ms">Amazon比率は約8%</div></div>
+    </div>
+    <div class="chart-wrap" style="flex:1;max-height:210px;margin-bottom:12px;">
+      <canvas id="c2" role="img" aria-label="自社ECとAmazonの売上比較グラフ"></canvas>
+    </div>
+    <div class="hl hl-green"><strong>重要な発見：</strong>2025年2〜4月のAmazonペナルティ急落期間、自社ECは全く影響を受けず安定成長を継続。自社ECの独立した顧客基盤が機能していることを証明している。</div>
+  </div>
+</div>
+
+<!-- ===== S3: Amazonリスクと自社EC優先戦略 ===== -->
+<div class="slide" id="s3">
+  <div class="inner">
+    <div class="tag">Amazon Sales Channel Analysis — 3/4</div>
+    <div class="title">Amazonの<span>リスク</span>と自社EC優先戦略の正当性</div>
+    <div class="three-col" style="flex:1;min-height:0;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="ic risk">
+          <div class="ic-tag">リスク 1</div>
+          <div class="ic-val">外部要因で売上がゼロになるリスク</div>
+          <div class="ic-body">2025年2月の実績：出荷遅延によるペナルティで売上が2.3万円に急落（通常月の約1/10）。Amazon側のルール変更・アルゴリズム変動・競合出品者の価格競争など、自社でコントロールできない要素が多い。</div>
+        </div>
+        <div class="ic risk">
+          <div class="ic-tag">リスク 2</div>
+          <div class="ic-val">手数料コストと利益率の圧迫</div>
+          <div class="ic-body">Amazon出品手数料は通常8〜15%。月24.7万円の売上でも実質的な手取りはさらに少ない。自社ECは決済手数料のみ（3〜4%程度）のため、同じ売上でも利益率が大きく異なる。</div>
+        </div>
+        <div class="ic risk">
+          <div class="ic-tag">リスク 3</div>
+          <div class="ic-val">顧客データが取得できない</div>
+          <div class="ic-body">Amazon経由の購入者は「Amazonの顧客」であり、中野酢の顧客にならない。メルマガ・LINE登録も不可能で、リピーター育成施策が打てない。長期的なLTV向上の観点で大きな機会損失。</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="ic opp">
+          <div class="ic-tag">自社EC優先の正当性 1</div>
+          <div class="ic-val">Amazonが落ちても自社ECは安定</div>
+          <div class="ic-body">データが証明：2025年2〜4月のAmazon急落期、自社ECは月160〜193万円と安定成長を継続。自社ECに独立した顧客基盤があることが確認できた。</div>
+        </div>
+        <div class="ic opp">
+          <div class="ic-tag">自社EC優先の正当性 2</div>
+          <div class="ic-val">顧客をLINE・メルマガで囲める</div>
+          <div class="ic-body">自社EC購入者は自動でメルマガ登録される。開封率54%・LINE購入転換率27.6%という優良リストに加えられる。Amazonには絶対にできないこと。</div>
+        </div>
+        <div class="ic opp">
+          <div class="ic-tag">自社EC優先の正当性 3</div>
+          <div class="ic-val">客単価・LTVの最大化</div>
+          <div class="ic-body">自社ECの客単価は2024年〜2026年で12,500円→15,100円に上昇中。Amazonは単品・安価な商品が売れやすい構造で客単価が上がりにくい。ギフトセット・限定品の訴求も自社ECが有利。</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="hl" style="margin-bottom:0;">
+          <strong>結論：</strong>Amazonは「補完チャネル」として機能しているが、依存するほどの規模ではない（自社ECの約8%）。自社ECを主軸に置き、Amazonは段階的に縮小・撤退を検討する方向性が合理的。
+        </div>
+        <div class="ic warn">
+          <div class="ic-tag">ただし撤退前に確認すべきこと</div>
+          <div class="ic-val">Amazon経由の顧客が自社ECに移行するか</div>
+          <div class="ic-body">月24.7万円のAmazon売上のうち、どれだけが「Amazonでしか買わない顧客」によるものかが不明。Googleショッピング広告を3ヶ月試して自社ECへの代替流入が作れるか確認してから撤退判断が安全。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S4: 撤退タイミングの考え方 ===== -->
+<div class="slide" id="s4">
+  <div class="inner">
+    <div class="tag">Amazon Sales Channel Analysis — 4/4</div>
+    <div class="title">Amazon撤退<span>タイミング</span>の考え方</div>
+    <div class="hl" style="margin-bottom:16px;"><strong>基本方針：</strong>今すぐ撤退は早い。ただし準備は今から。自社ECが安定成長している今こそ、撤退に向けた布石を打つタイミング。</div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num" style="background:var(--blue);">今</div>
+        <div>
+          <div class="flow-title">UTMパラメータ設定 ＋ GA4×EC連携</div>
+          <div class="flow-detail">まずAmazon経由の流入がGA4でどれだけ見えているかを確認する。自社ECとAmazonの顧客が重複しているかどうかを把握する基盤を作る。</div>
+          <span class="flow-badge badge-now">今週中に実施可能</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num" style="background:var(--amz);">1〜3<br>ヶ月</div>
+        <div>
+          <div class="flow-title">Googleショッピング広告を試験運用（3ヶ月）</div>
+          <div class="flow-detail">主力商品（黒酢3本セット・デイズシリーズ）でGoogleショッピング広告を出稿。「Amazon経由でしか来なかった顧客」を自社ECに引き込めるか検証する。月予算3〜5万円程度でデータが取れる。</div>
+          <span class="flow-badge badge-next">Amazon撤退の前提条件</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num" style="background:var(--accent);">3〜6<br>ヶ月</div>
+        <div>
+          <div class="flow-title">撤退判断の基準を確認</div>
+          <div class="flow-detail">以下の条件が揃ったら撤退を検討：①自社EC月商が安定して300万円超 ②Googleショッピング広告でAmazon相当の流入が自社ECに来ている ③Amazon売上の季節性（特に12月特需）を自社ECで代替できる見込みがある</div>
+          <span class="flow-badge badge-future">撤退判断のタイミング</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num" style="background:var(--accent);">撤退<br>時</div>
+        <div>
+          <div class="flow-title">段階的撤退を推奨</div>
+          <div class="flow-detail">一度に全商品を撤退するのではなく、まず低利益率の商品・単品商品から順に在庫を絞り→最終的に全商品撤退の順が安全。撤退後にAmazonページから自社ECへの誘導ができないため、事前のLINE・メルマガへの誘導強化が重要。</div>
+          <span class="flow-badge badge-future">段階的に実施</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="nav">
+  <button onclick="prev()">← 前へ</button>
+  <div class="counter" id="counter">1 / 4</div>
+  <button onclick="next()">次へ →</button>
+</div>
+
+<script>
+let cur=0;
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+function go(n){slides[cur].classList.remove('active');cur=(n+total)%total;slides[cur].classList.add('active');document.getElementById('counter').textContent=(cur+1)+' / '+total;}
+function next(){go(cur+1);}
+function prev(){go(cur-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')next();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev();});
+
+window.addEventListener('load', () => {
+  const months = ['2024-6','2024-7','2024-8','2024-9','2024-10','2024-11','2024-12','2025-1','2025-2','2025-3','2025-4','2025-5','2025-6','2025-7','2025-8','2025-9','2025-10','2025-11','2025-12','2026-1','2026-2','2026-3','2026-4','2026-5'];
+  const amzSales = [255916,221204,203742,137700,160174,192672,1598788,274212,23166,91530,125064,181018,172832,186570,165250,151314,387676,200642,163512,234090,172194,250938,232308,141372];
+
+  // S1: Amazon月次推移
+  new Chart(document.getElementById('c1'), {
+    type:'bar',
+    data:{
+      labels: months,
+      datasets:[{
+        label:'Amazon売上',
+        data: amzSales,
+        backgroundColor: amzSales.map((v,i) => {
+          if(i===6) return '#e47911'; // 12月特需
+          if(i>=8 && i<=10) return '#e24b4a'; // ペナルティ期間
+          return '#f5c878';
+        }),
+        borderWidth:0
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>ctx.parsed.y.toLocaleString()+'円'}}},
+      scales:{
+        x:{ticks:{font:{size:10},color:'#7a7a72',autoSkip:true,maxRotation:45}},
+        y:{ticks:{callback:v=>Math.round(v/10000)+'万',font:{size:10},color:'#7a7a72'},grid:{color:'rgba(0,0,0,0.06)'}}
+      }
+    }
+  });
+
+  // S2: 自社EC vs Amazon比較
+  const compareMonths = ['2024-6','2024-7','2024-8','2024-9','2024-10','2024-11','2024-12','2025-1','2025-2','2025-3','2025-4','2025-5','2025-6','2025-7','2025-8','2025-9','2025-10','2025-11','2025-12','2026-1','2026-2','2026-3','2026-4'];
+  const ecData = [1237630,1472119,953083,1129253,970156,989660,9089273,2372566,1944948,1707824,1608521,1843462,2927202,1773782,2195695,2031269,2175941,1429656,2225485,1535012,1570857,1857373,2110765];
+  const amzData = [255916,221204,203742,137700,160174,192672,1598788,274212,23166,91530,125064,181018,172832,186570,165250,151314,387676,200642,163512,234090,172194,250938,232308];
+
+  new Chart(document.getElementById('c2'), {
+    type:'bar',
+    data:{
+      labels: compareMonths,
+      datasets:[
+        {label:'自社EC', data:ecData, backgroundColor:'#2d5016', borderWidth:0},
+        {label:'Amazon', data:amzData, backgroundColor:'#f5c878', borderWidth:0},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{font:{size:11},color:'#3d3d38'}},
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.y.toLocaleString()+'円'}}
+      },
+      scales:{
+        x:{ticks:{font:{size:9},color:'#7a7a72',autoSkip:true,maxRotation:45}},
+        y:{ticks:{callback:v=>Math.round(v/10000)+'万',font:{size:10},color:'#7a7a72'},grid:{color:'rgba(0,0,0,0.06)'}}
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
